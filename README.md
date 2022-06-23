@@ -1,2 +1,2 @@
-# uc_restful_api
+# Ultimate CookBook RESTFul API
 A cookbook Api that can be used with any client
