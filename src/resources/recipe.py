@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError, DatabaseError
 from marshmallow.exceptions import ValidationError
 from src import db
 from src.models import Recipe, Ingredient
+from src.resources.authentication import jwt_protected
 from src.resources.iptracker import add_tracker
 from src.schemas import RecipeSchema
 
@@ -26,6 +27,8 @@ class RecipeApi(Resource):
             else:
                 recipe_data = self.recipe_schema.dump(recipe)
                 return recipe_data, 200
+
+    @jwt_protected
 
     def post(self):
         data = request.json
@@ -49,6 +52,8 @@ class RecipeApi(Resource):
         else:
             recipe_name = data.get('name', None)
             recipe_text = data.get('recipe', None)
+            if len(recipe_name) < 1 or len(recipe_text) < 1:
+                return {'message': 'Incorrect data entered: Mandatory fields cannot be empty'}, 400
             recipe = Recipe(recipe_name, recipe_text)
             for item in ingredients:
                 ingredient = db.session.query(Ingredient).filter_by(name=item.strip().lower()).first()
@@ -58,16 +63,16 @@ class RecipeApi(Resource):
             try:
                 db.session.add(recipe)
                 db.session.commit()
-            except ValidationError:
-                return {'message': 'Incorrect data entered'}, 400
             except IntegrityError:
                 return {'message': 'The recipe already exists'}, 409
-            except (KeyError, TypeError, ValueError, AttributeError, DatabaseError):
+            except (KeyError, TypeError, ValueError, AttributeError, ValidationError, DatabaseError):
                 print('Wrong data. Database error, cleaning up remaining files...')
                 db.session.rollback()
                 db.session.close()
             else:
                 return {'message': 'Recipe has been created with ingredients'}, 201
+
+    @jwt_protected
 
     def put(self, _id=None):
         data = request.json
@@ -117,6 +122,8 @@ class RecipeApi(Resource):
             else:
                 return {'message': 'Recipe has been updated with ingredients'}, 201
 
+    @jwt_protected
+
     def patch(self, _id=None):
         data = request.json
         if _id is None:
@@ -164,6 +171,8 @@ class RecipeApi(Resource):
                 db.session.close()
             else:
                 return {'message': 'Recipe has been updated with ingredients'}, 201
+
+    @jwt_protected
 
     def delete(self, _id=None):
         if _id is None:

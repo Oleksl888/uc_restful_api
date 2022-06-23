@@ -4,12 +4,12 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from werkzeug.security import generate_password_hash
 from src import db
 
-
+#add nullable contrsaints
 class Recipe(db.Model):
     __tablename__ = 'recipes'
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    recipe = Column(String)
+    name = Column(String, unique=True, nullable=False)
+    recipe = Column(String, nullable=False)
     ingredients = db.relationship('Ingredient', secondary='recipe_ingredients',
                                   lazy=True, backref=db.backref('recipes', lazy=True))
     feedback = db.relationship('Feedback', secondary='recipe_feedback', lazy=True,
@@ -28,7 +28,7 @@ class Recipe(db.Model):
 class Ingredient(db.Model):
     __tablename__ = 'ingredients'
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
+    name = Column(String, unique=True, nullable=False)
 
     def __init__(self, name: str, recipes=None):
         self.name = name
@@ -48,14 +48,16 @@ recipe_ingredients = db.Table(
 class Feedback(db.Model):
     __tablename__ = 'feedback'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    message = Column(String)
+    name = Column(String, nullable=False)
+    message = Column(String, nullable=False)
     date_time = Column(DateTime)
+    registered_user = Column(Boolean, default=False)
 
-    def __init__(self, name: str, message: str):
+    def __init__(self, name: str, message: str, registered_user=False):
         self.name = name
         self.message = message
         self.date_time = datetime.now()
+        self.registered_user = registered_user
 
     def __repr__(self):
         return f'Feedback object'
@@ -84,8 +86,8 @@ class Tracker(db.Model):
 class User(db.Model):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    email = Column(String, unique=True)
+    name = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
     password = Column(String)
     uuid = Column(String)
     registered_date = Column(DateTime)

@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError, DatabaseError
 
 from src import db
 from src.models import Ingredient, Recipe
+from src.resources.authentication import jwt_protected
 from src.resources.iptracker import add_tracker
 from src.schemas import IngredientSchema
 
@@ -25,6 +26,8 @@ class IngredientApi(Resource):
             else:
                 ingredient_data = self.ingredient_schema.dump(ingredient)
                 return ingredient_data, 200
+
+    @jwt_protected
 
     def post(self):
         data = request.json
@@ -67,6 +70,8 @@ class IngredientApi(Resource):
                 db.session.close()
             else:
                 return {'message': 'Ingredient has been created with recipes'}, 201
+
+    @jwt_protected
 
     def put(self, _id=None):
         data = request.json
@@ -114,6 +119,8 @@ class IngredientApi(Resource):
             else:
                 return {'message': 'Ingredient has been updated with recipes'}, 201
 
+    @jwt_protected
+
     def patch(self, _id=None):
         data = request.json
         if _id is None:
@@ -158,6 +165,8 @@ class IngredientApi(Resource):
                 db.session.close()
             else:
                 return {'message': 'Ingredient has been updated with recipes'}, 201
+
+    @jwt_protected
 
     def delete(self, _id=None):
         if _id is None:
