@@ -14,11 +14,15 @@ class FeedbackApi(Resource):
     feedback_schema = FeedbackSchema()
 
     @add_tracker
-    def get(self):
-        #add filter_by unregistered users
-        feedback = db.session.query(Feedback).all()
-        feedback_data = self.feedback_schema.dump(feedback, many=True)
+    def get(self, _id=None):
+        if not _id:
+            feedback = db.session.query(Feedback).filter_by(registered_user=False).all()
+            feedback_data = self.feedback_schema.dump(feedback, many=True)
+            return feedback_data, 200
+        feedback = db.session.query(Feedback).filter_by(id=_id).first()
+        feedback_data = self.feedback_schema.dump(feedback)
         return feedback_data, 200
+
 
     @add_tracker
     @jwt_protected

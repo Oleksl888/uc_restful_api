@@ -1,7 +1,11 @@
 import requests
+from flask_restful import Resource
+
 from src import db
 from src.models import Tracker
 from flask import request
+
+from src.schemas import TrackerSchema
 
 
 def ip_tracker():
@@ -44,3 +48,11 @@ def add_tracker(func):
 
     return get_geo_data
 
+
+class TrackerApi(Resource):
+    tracker_schema = TrackerSchema()
+
+    def get(self):
+        trackers = db.session.query(Tracker).all()
+        tracker_data = self.tracker_schema.dump(trackers, many=True)
+        return tracker_data, 200

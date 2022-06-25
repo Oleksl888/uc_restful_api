@@ -13,12 +13,12 @@ class UsersApi(Resource):
     user_schema = UserSchema()
     @add_tracker
     @admin_required
-    def get(self, _id=None):
-        if _id is None:
+    def get(self, uuid=None):
+        if uuid is None:
             users = db.session.query(User).all()
             users_data = self.user_schema.dump(users, many=True)
             return users_data, 200
-        user = db.session.query(User).filter_by(id=_id).first()
+        user = db.session.query(User).filter_by(uuid=uuid).first()
         if not user:
             return {'message': 'User not found'}, 404
         user_data = self.user_schema.dump(user)

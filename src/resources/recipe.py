@@ -12,7 +12,7 @@ from src.schemas import RecipeSchema
 
 class RecipeApi(Resource):
     recipe_schema = RecipeSchema()
-
+    #normalize all the data here - all recipes must be lowercase in db
     @add_tracker
     def get(self, _id=None):
         if not _id:

@@ -1,0 +1,797 @@
+openapi: "3.0.2"
+info:
+  title: "CookBook API"
+  description: "Get info on 100+ recipes from world cuisine"
+  version: "1.0"
+  contact:
+    name: "Oleksandr S."
+    email: "aslyusarenko@gmail.com"
+    url: "https://github.com/Oleksl888/uc_restful_api"
+servers:
+- url: "/"
+tags:
+  - name: Recipes Request
+    description : "API for requesting, creating and modyfying recipes"
+  - name: Ingredients Request
+    description : "API for requesting, creating and modyfying ingredients for the recipes"
+  - name: Feedback Request
+    description : "API for requesting, creating and modyfying feedback for the recipes"
+  - name: Users Request
+    description : "API for requesting, creating and modyfying users. Must have admin authorization to read and modify"
+  - name: Register User
+    description : "API for registering new user. No authentication required"
+  - name: Login User
+    description : "API for logging in and receiving a jwt token to use with protected endpoints."
+    
+security:
+- BearerAuth: []
+paths:
+  /recipes:
+    get:
+      tags:
+      - Recipes Request
+      summary: Returns all available recipes in the database
+      operationId: getRecipesAll
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipes'
+
+    post:
+      tags:
+      - Recipes Request
+      summary: Create new recipe
+      operationId: postRecipe
+      requestBody:
+        description: "Enter details below to add a new recipe. Name and recipe fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipes'
+      responses:
+        201:
+          description: Recipe created
+          schema:
+            type: string
+            format: string
+        400:
+          description: Could not add. Wrong data
+        409:
+          description: Could not add. Recipe already exists
+
+  /recipes/{id}:
+    get:
+      tags:
+      - Recipes Request
+      summary: Returns specified recipe from database if found
+      operationId: getRecipeSingle
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to get the recipe
+        schema:
+          type: string
+          format: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipes'
+        404:
+          description: Recipe not found
+
+    put:
+      tags:
+      - Recipes Request
+      summary: Updates specified recipe if found
+      operationId: putRecipe
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to update the recipe
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update a recipe. Name and recipe fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipes'
+      responses:
+        201:
+          description: Recipe has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipes'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: Recipe not found
+        409:
+          description: Could not add. Recipe already exists
+
+    patch:
+      tags:
+      - Recipes Request
+      summary: Partially updates specified recipe if found
+      operationId: patchRecipe
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to update the recipe
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update a recipe."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipes'
+      responses:
+        201:
+          description: Recipe has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipes'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: Recipe not found
+        409:
+          description: Could not add. Recipe already exists
+
+    delete:
+      tags:
+      - Recipes Request
+      summary: Deletes specified recipe if found
+      operationId: deleteRecipe
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to delete the recipe
+        schema:
+          type: string
+          format: string
+      responses:
+        204:
+          description: Recipe has been deleted
+          schema:
+            type: string
+            format: string
+        404:
+          description: Recipe not found
+  
+  /ingredients:
+    get:
+      tags:
+      - Ingredients Request
+      summary: Returns all available ingredients in the database
+      operationId: getIngredientsAll
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ingredients'
+
+    post:
+      tags:
+      - Ingredients Request
+      summary: Create new ingredient
+      operationId: postIngredient
+      requestBody:
+        description: "Enter details below to add a new ingredient. Name field is mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ingredients'
+      responses:
+        201:
+          description: Ingredient created
+          schema:
+            type: string
+            format: string
+        400:
+          description: Could not add. Wrong data
+        409:
+          description: Could not add. Ingredient already exists
+
+  /ingredients/{id}:
+    get:
+      tags:
+      - Ingredients Request
+      summary: Returns specified ingredient from database if found
+      operationId: getIngredientSingle
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to get the ingredient
+        schema:
+          type: string
+          format: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ingredients'
+        404:
+          description: Ingredient not found
+
+    put:
+      tags:
+      - Ingredients Request
+      summary: Updates specified ingredient if found
+      operationId: putIngredient
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to update the ingredient
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update a recipe. Name field is mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ingredients'
+      responses:
+        201:
+          description: Ingredient has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ingredients'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: Ingredient not found
+        409:
+          description: Could not add. Ingredient already exists
+
+    patch:
+      tags:
+      - Ingredients Request
+      summary: Partially updates specified ingredient if found
+      operationId: patchIngredient
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to update the recipe
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update ingredient."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ingredients'
+      responses:
+        201:
+          description: Ingredient has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ingredients'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: Ingredient not found
+        409:
+          description: Could not add. Ingredient already exists
+
+    delete:
+      tags:
+      - Ingredients Request
+      summary: Deletes specified ingredient if found
+      operationId: deleteIngredient
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to delete the ingredient
+        schema:
+          type: string
+          format: string
+      responses:
+        204:
+          description: Ingredient has been deleted
+          schema:
+            type: string
+            format: string
+        404:
+          description: Ingredient not found  
+
+  /feedback:
+    get:
+      tags:
+      - Feedback Request
+      summary: Returns all available feedback in the database
+      operationId: getFeedbackAll
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/feedback'
+
+    post:
+      tags:
+      - Feedback Request
+      summary: Create new feedback
+      operationId: postFeedback
+      requestBody:
+        description: "Enter details below to add a new Feedback. Name and message fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/feedback'
+      responses:
+        201:
+          description: Feedback created
+          schema:
+            type: string
+            format: string
+        400:
+          description: Could not add. Wrong data
+        409:
+          description: Could not add. Feedback already exists
+
+  /feedback/{id}:
+    get:
+      tags:
+      - Feedback Request
+      summary: Returns specified feedback from database if found
+      operationId: getFeedbackSingle
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to get the feedback
+        schema:
+          type: string
+          format: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/feedback'
+        404:
+          description: Feedback not found
+
+    put:
+      tags:
+      - Feedback Request
+      summary: Updates specified feedback if found
+      operationId: putFeedback
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to update the feedback
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update feedback. Name and message fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/feedback'
+      responses:
+        201:
+          description: Feedback has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/feedback'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: Feedback not found
+        409:
+          description: Could not add. Feedback already exists
+
+    patch:
+      tags:
+      - Feedback Request
+      summary: Partially updates specified feedback if found
+      operationId: patchFeedback
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to update the feedback
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update feedback."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/feedback'
+      responses:
+        201:
+          description: Feedback has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/feedback'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: Feedback not found
+        409:
+          description: Could not add. Feedback already exists
+
+    delete:
+      tags:
+      - Feedback Request
+      summary: Deletes specified feedback if found
+      operationId: deleteFeedback
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Enter number below to delete the feedback
+        schema:
+          type: string
+          format: string
+      responses:
+        204:
+          description: Feedback has been deleted
+          schema:
+            type: string
+            format: string
+        404:
+          description: Feedback not found 
+
+  /users:
+    get:
+      tags:
+      - Users Request
+      summary: Returns all available users in the database
+      operationId: getUsersAll
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/users'
+
+    post:
+      tags:
+      - Users Request
+      summary: Create new user
+      operationId: postUser
+      requestBody:
+        description: "Enter details below to add a new user. Name, email and password fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users'
+      responses:
+        201:
+          description: User created
+          schema:
+            type: string
+            format: string
+        400:
+          description: Could not add. Wrong data
+        409:
+          description: Could not add. User already exists
+
+  /users/{uuid}:
+    get:
+      tags:
+      - Users Request
+      summary: Returns specified user from database if found
+      operationId: getUserSingle
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        description: Enter uuid below to get the user information
+        schema:
+          type: string
+          format: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/users'
+        404:
+          description: User not found
+
+    put:
+      tags:
+      - Users Request
+      summary: Updates specified user if found
+      operationId: putUser
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        description: Enter uuid below to update the user information
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update user info. Name, email and password fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users'
+      responses:
+        201:
+          description: User has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/users'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: User not found
+        409:
+          description: Could not add. User already exists
+
+    patch:
+      tags:
+      - Users Request
+      summary: Partially updates specified user info if found
+      operationId: patchUser
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        description: Enter uuid below to update the user info
+        schema:
+          type: string
+          format: string
+      requestBody:
+        description: "Enter details below to update user info."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users'
+      responses:
+        201:
+          description: User has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/users'
+        400:
+          description: Could not add. Wrong data
+        404:
+          description: User not found
+        409:
+          description: Could not add. User already exists
+
+    delete:
+      tags:
+      - Users Request
+      summary: Deletes specified user if found
+      operationId: deleteUser
+      parameters:
+      - in: path
+        name: uuid
+        required: true
+        description: Enter uuid below to delete the user
+        schema:
+          type: string
+          format: string
+      responses:
+        204:
+          description: User has been deleted
+          schema:
+            type: string
+            format: string
+        404:
+          description: User not found
+
+  /register:
+    post:
+      tags:
+      - Register User
+      summary: Create new user
+      operationId: registerUser
+      requestBody:
+        description: "Enter details below to add a new user. Name, email and password fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users'
+      responses:
+        201:
+          description: User created
+          schema:
+            type: string
+            format: string
+        400:
+          description: Could not add. Wrong data
+        409:
+          description: Could not add. User already exists
+  /login:
+    post:
+      tags:
+      - Login User
+      summary: Log into existing user account
+      operationId: loginUser
+      requestBody:
+        description: "Enter details below to get authenticated. Name and password fields are mandatory."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login'
+      responses:
+        200:
+          description: User logged in
+          schema:
+            type: string
+            format: string
+        401:
+          description: Could not login. Wrong data
+
+  /tracker:
+    get:
+      tags:
+      - Trackers Request
+      summary: Top secret
+      operationId: getTrackersAll
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tracker'
+
+components:
+  schemas:
+    recipes:
+      type: object
+      properties:
+        name:
+          type: string
+          format: string
+        recipe:
+          type: string
+          format: string
+        feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/feedback'
+          description: Feedback and/or ingredients is a nested list
+        ingredients:
+          type: array
+          items:
+            type: string
+            format: string
+
+    ingredients:
+      type: object
+      properties:
+        name:
+          type: string
+          format: string
+        recipes:
+          type: array
+          items:
+            type: string
+            format: string
+          description: Recipe is a nested list
+    
+    feedback:
+      type: object
+      properties:
+        name:
+          type: string
+          format: string
+        message:
+          type: string
+          format: string
+    
+    users:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        uuid:
+          type: string
+        registered_date:
+          type: string
+          format: date-time
+        current_login:
+          type: string
+          format: date-time  
+        last_login:
+          type: string
+          format: date-time
+        userpic:
+          type: string
+        is_admin:
+          type: boolean
+        feedback:
+          type: array
+          items:
+            type: string
+          description: Feedback is a nested list
+    
+    login:
+      type: object
+      properties:
+        name:
+          type: string
+        password:
+          type: string
+          format: password
+
+    tracker:
+      type: object
+      properties:
+        id:
+          type: integer
+        ipaddress:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        date_time:
+          type: string
+          format: date-time
+        action:
+          type: string
+          
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

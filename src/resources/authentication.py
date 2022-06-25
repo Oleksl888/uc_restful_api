@@ -80,13 +80,14 @@ def jwt_protected(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
+            print(request.headers.get('Authorization'))
             token = request.headers.get('Authorization', None).split()[1]
         except (IndexError, ValueError, KeyError, AttributeError):
             return {"message": "Authentication required"}, 401
-        print(token)
+        print('this is a token', token)
         try:
             uuid = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")['user_id']
-        except (KeyError, jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
+        except (KeyError, ValueError, jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
             return {"message": "Authentication required"}, 401
         user = db.session.query(User).filter_by(uuid=uuid).first()
         if not user:
@@ -101,16 +102,17 @@ def admin_required(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
+            print(request.headers.get('Authorization'))
             token = request.headers.get('Authorization', None).split()[1]
         except (IndexError, ValueError, KeyError, AttributeError):
             return {"message": "Authentication required"}, 401
-        print(token)
+        print('this is a token', token)
         try:
             token_data = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")
             if token_data['user_id'] and not token_data['is_admin']:
                 return {"message": "Not Authorized do make changes"}, 403
             uuid = token_data['user_id']
-        except (KeyError, jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
+        except (KeyError, ValueError, jwt.ExpiredSignatureError, jwt.InvalidSignatureError):
             return {"message": "Authentication required"}, 401
         user = db.session.query(User).filter_by(uuid=uuid).first()
         if not user:
