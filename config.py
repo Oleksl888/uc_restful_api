@@ -2,9 +2,13 @@ import os.path
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
+# in case of Heroku deployment - fixing postgres dialect issue
+uri = os.getenv("DATABASE_URL")
+if uri and uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(BASEDIR, 'data', 'cook.db')
+    SQLALCHEMY_DATABASE_URI = uri or 'sqlite:///' + os.path.join(BASEDIR, 'data', 'cook.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
