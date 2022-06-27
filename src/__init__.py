@@ -23,7 +23,8 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
     config={
-            'app_name': 'Ultimate CookBook UI'
+            'app_name': 'Ultimate CookBook UI',
+            'validatorUrl': None
         }
 )
 
