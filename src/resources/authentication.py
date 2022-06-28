@@ -1,5 +1,4 @@
 import datetime
-import os
 from functools import wraps
 
 import jwt
@@ -16,12 +15,38 @@ from src.schemas import UserSchema
 from flask_mail import Message
 
 
+def normalize_data(data_from_json):
+    """
+    Checks name string for having alphabetic characters only
+    and sets all strings to lower case before adding them to db.
+    If required fields are empty Validation Error is raised
+    """
+    if not data_from_json.get('name') or not data_from_json.get('name').isalpha():
+        raise ValidationError
+    if not data_from_json.get('email') or not data_from_json.get('password'):
+        raise ValidationError
+    if len(data_from_json.get('password')) < 8:
+        raise ValidationError
+    for key, val in data_from_json.items():
+        if not key == 'password':
+            data_from_json[key] = val.lower()
+
+
 def send_mail(_name, _email):
+    """
+    Must configure settings for email service. Config file must contain these mandatory fields:
+    MAIL_SERVER
+    MAIL_USERNAME
+    MAIL_PASSWORD
+    MAIL_PORT
+    MAIL_USE_TLS
+    Username and password must be taken from environment variables for security purposes
+    """
     print('Sending mail...')
     message = Message(
         subject='You have been registered',
         recipients=[_email],
-        sender=os.environ.get('MAIL_USERNAME'),
+        sender=app.config.get('MAIL_USERNAME'),
         body=f'Hello, {_name}! You have been registered.'
     )
     mail.send(message)
@@ -29,20 +54,26 @@ def send_mail(_name, _email):
 
 
 class RegisterApi(Resource):
+    """
+    Register User endpoint that does not require authentication.
+    Basic user priveleges will be set with this endpoint.
+    """
     user_schema = UserSchema()
 
     @add_tracker
     def post(self):
+        """
+        The normalize_data function will raise validation error if name has incorrect format.
+        """
         data = request.json
-        email = data.get('email', '')
-        name = data.get('name', '')
-        for key, val in data.items():
-            if not key == 'password':
-                data[key] = val.lower()
         try:
+            normalize_data(data)
             user = self.user_schema.load(data)
-        except ValidationError as error:
-            return {'message': str(error)}, 400
+        except (ValidationError, TypeError):
+            return {'message': '''Incorrect data entered:\n
+                                  Name must be only alphabetic characters.\n
+                                  Must be valid email address.\n
+                                  Password must contain at least 8 symbols\n'''}, 400
         try:
             db.session.add(user)
             db.session.commit()
@@ -50,6 +81,8 @@ class RegisterApi(Resource):
             db.session.rollback()
             return {'message': 'User exists already'}, 409
         else:
+            name = data.get('name')
+            email = data.get('email')
             print('about to send mail')
             send_mail(name, email)
             print('email send')
@@ -57,6 +90,10 @@ class RegisterApi(Resource):
 
 
 class LoginApi(Resource):
+    """
+    Upon successful login a jwt token is issued with expiration for 2 hours.
+    JWT token contains user id and its authorization level.
+    """
 
     @add_tracker
     def post(self):
@@ -70,13 +107,17 @@ class LoginApi(Resource):
             {
                 "user_id": user.uuid,
                 "is_admin": user.is_admin,
-                "exp": datetime.datetime.now() + datetime.timedelta(hours=2)
+                "exp": datetime.datetime.now() + datetime.timedelta(hours=6)
             }, app.config.get('SECRET_KEY'), algorithm="HS256"
         )
         return {"token": token}, 200
 
 
 def jwt_protected(func):
+    """
+    Makes a decorator for endpoints that will require basic user authentication.
+    """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
@@ -99,6 +140,10 @@ def jwt_protected(func):
 
 
 def admin_required(func):
+    """
+    Makes a decorator for endpoints that will require admin user authentication.
+    """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:

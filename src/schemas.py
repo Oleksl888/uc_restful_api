@@ -5,6 +5,12 @@ from src.models import User, Feedback, Recipe, Ingredient
 
 
 class RecipeSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Notes for future self:
+    Schema inherits recipe model with all its fields,
+    exclude constraint does not allow to load id.
+    Schema has two nested schemas that are limited to load only selected fields to avoid recursive calls.
+    """
     class Meta:
         model = Recipe
         exclude = ['id']

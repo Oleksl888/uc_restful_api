@@ -9,7 +9,9 @@ from src.schemas import TrackerSchema
 
 
 def ip_tracker():
-    """This part is intentionally added for Heroku"""
+    """
+    This part is intentionally added for Heroku to get the real IP address from the headers.
+    """
     response = request.headers.get('X-Forwarded-For', None)
     print('This is the real clients ip address --------', response)
     return response
@@ -19,6 +21,10 @@ def ip_tracker():
 
 
 def geo_request():
+    """
+    Using WHOIS API to get information on client's location.
+    :return:
+    """
     ip_address = ip_tracker()
     if ip_address:
         url = 'http://ipwho.is/'
@@ -28,7 +34,9 @@ def geo_request():
 
 
 def add_tracker(func):
-
+    """
+    A decorator function to wrap endpoints to track user activity.
+    """
     def get_geo_data(self, *args, **kwargs):
         json_response = geo_request()
         if not json_response:
@@ -50,6 +58,9 @@ def add_tracker(func):
 
 
 class TrackerApi(Resource):
+    """
+    Updates database with client's information when useing the API.
+    """
     tracker_schema = TrackerSchema()
 
     def get(self):

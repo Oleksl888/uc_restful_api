@@ -8,7 +8,24 @@ from src.models import User
 from src.resources.iptracker import add_tracker
 from src.schemas import UserSchema
 
-#must solve case sensitivity issue
+
+def normalize_data(data_from_json):
+    """
+    Checks name string for having alphabetic characters only
+    and sets all strings to lower case before adding them to db.
+    If required fields are empty Validation Error is raised
+    """
+    if not data_from_json.get('name') or not data_from_json.get('name').isalpha():
+        raise ValidationError
+    if not data_from_json.get('email') or not data_from_json.get('password'):
+        raise ValidationError
+    if len(data_from_json.get('password')) < 8:
+        raise ValidationError
+    for key, val in data_from_json.items():
+        if not key == 'password':
+            data_from_json[key] = val.lower()
+
+
 class UsersApi(Resource):
     user_schema = UserSchema()
     @add_tracker
@@ -27,15 +44,14 @@ class UsersApi(Resource):
     @admin_required
     def post(self):
         data = request.json
-        email = data.get('email', '')
-        name = data.get('name', '')
-        for key, val in data.items():
-            if not key == 'password':
-                data[key] = val.lower()
         try:
+            normalize_data(data)
             user = self.user_schema.load(data, session=db.session)
-        except ValidationError:
-            return {'message': 'Incorrect data entered'}, 400
+        except (ValidationError, TypeError):
+            return {'message': '''Incorrect data entered:\n
+                                  Name must be only alphabetic characters.\n
+                                  Must be valid email address.\n
+                                  Password must contain at least 8 symbols\n'''}, 400
         except (KeyError, TypeError, ValueError, AttributeError, DatabaseError):
             print('Wrong data. Database error, cleaning up remaining files...')
             db.session.rollback()
@@ -46,6 +62,8 @@ class UsersApi(Resource):
                 db.session.commit()
             except IntegrityError:
                 return {'message': 'The user already exists'}, 409
+            email = data.get('email', '')
+            name = data.get('name', '')
             send_mail(name, email)
             return {'message': 'User has been added'}, 201
 
@@ -57,9 +75,13 @@ class UsersApi(Resource):
         user = db.session.query(User).filter_by(uuid=uuid).first()
         if user:
             try:
+                normalize_data(data)
                 user = self.user_schema.load(data, instance=user, session=db.session)
-            except ValidationError:
-                return {'message': 'Incorrect data entered'}, 400
+            except (ValidationError, TypeError):
+                return {'message': '''Incorrect data entered:\n
+                                      Name must be only alphabetic characters.\n
+                                      Must be valid email address.\n
+                                      Password must contain at least 8 symbols\n'''}, 400
             except (KeyError, TypeError, ValueError, AttributeError, DatabaseError):
                 print('Wrong data. Database error, cleaning up remaining files...')
                 db.session.rollback()
@@ -81,10 +103,20 @@ class UsersApi(Resource):
             return {'message': 'Must specify user uuid in the url to make changes'}, 404
         user = db.session.query(User).filter_by(uuid=uuid).first()
         if user:
-            try:
+            try:  # Validating and normalizing data - made separate for patch method
+                if data.get('name') and not data.get('name').isalpha():
+                    raise ValidationError
+                if data.get('password') and len(data.get('password')) < 8:
+                    raise ValidationError
+                for key, val in data.items():
+                    if not key == 'password':
+                        data[key] = val.lower()
                 user = self.user_schema.load(data, instance=user, session=db.session, partial=True)
-            except ValidationError:
-                return {'message': 'Incorrect data entered'}, 400
+            except (ValidationError, TypeError):
+                return {'message': '''Incorrect data entered:\n
+                                          Name must be only alphabetic characters.\n
+                                          Must be valid email address.\n
+                                          Password must contain at least 8 symbols\n'''}, 400
             except (KeyError, TypeError, ValueError, AttributeError, DatabaseError):
                 print('Wrong data. Database error, cleaning up remaining files...')
                 db.session.rollback()

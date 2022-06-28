@@ -1,6 +1,8 @@
+import os
+
 from flask_mail import Message
 
-from src import db, mail
+from src import db, mail, app
 from src.models import Recipe, Ingredient, Feedback, User #, RecipeFeedback
 
 
@@ -59,7 +61,7 @@ def send_mail(_name, _email):
     message = Message(
         subject='You have been registered',
         recipients=[_email],
-        sender='olesliusarenko@gmail.com',
+        sender="olesliusarenko@gmail.com",
         body=f'Hello, {_name}! You have been registered.'
     )
     mail.send(message)
@@ -68,4 +70,5 @@ def send_mail(_name, _email):
 
 
 if __name__ == '__main__':
-    send_mail('Alex', 'aslyusarenko@gmail.com')
+    with app.app_context():
+        send_mail('Alex', 'aslyusarenko@gmail.com')

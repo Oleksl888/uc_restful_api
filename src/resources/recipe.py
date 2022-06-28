@@ -10,9 +10,29 @@ from src.resources.iptracker import add_tracker
 from src.schemas import RecipeSchema
 
 
+def normalize_data(data_from_json):
+    """
+    Removes trailing characters and sets all strings to lower case before adding them to db.
+    Empty strings will be removed from recipe list if found or set to None if found in ingredient name.
+    If recipe name field is empty raises a Validation Error
+    """
+    if not data_from_json.get('name') or len(data_from_json.get('name')) < 1:
+        raise ValidationError
+    if not data_from_json.get('recipe') or len(data_from_json.get('recipe')) < 1:
+        raise ValidationError
+    for key, val in data_from_json.items():
+        if key == 'ingredients':
+            new_list = [item.strip().lower() for item in val if len(item) > 0]
+            data_from_json[key] = new_list
+        elif key == 'recipe':
+            continue
+        else:
+            data_from_json[key] = val.strip().lower() if len(val) > 0 else None
+
+
 class RecipeApi(Resource):
     recipe_schema = RecipeSchema()
-    #normalize all the data here - all recipes must be lowercase in db
+
     @add_tracker
     def get(self, _id=None):
         if not _id:
@@ -29,9 +49,12 @@ class RecipeApi(Resource):
                 return recipe_data, 200
 
     @jwt_protected
-
     def post(self):
         data = request.json
+        try:
+            normalize_data(data)
+        except ValidationError:
+            return {'message': 'Incorrect data entered: name and recipe field cannot be empty'}, 400
         ingredients = data.get('ingredients', None)
         if not ingredients:
             try:
@@ -50,15 +73,13 @@ class RecipeApi(Resource):
                     return {'message': 'The recipe already exists'}, 409
                 return {'message': 'Recipe has been added'}, 201
         else:
-            recipe_name = data.get('name', None)
-            recipe_text = data.get('recipe', None)
-            if len(recipe_name) < 1 or len(recipe_text) < 1:
-                return {'message': 'Incorrect data entered: Mandatory fields cannot be empty'}, 400
+            recipe_name = data.get('name')
+            recipe_text = data.get('recipe')
             recipe = Recipe(recipe_name, recipe_text)
             for item in ingredients:
-                ingredient = db.session.query(Ingredient).filter_by(name=item.strip().lower()).first()
+                ingredient = db.session.query(Ingredient).filter_by(name=item).first()
                 if not ingredient:
-                    ingredient = Ingredient(item.strip().lower())
+                    ingredient = Ingredient(item)
                 recipe.ingredients.append(ingredient)
             try:
                 db.session.add(recipe)
@@ -73,9 +94,12 @@ class RecipeApi(Resource):
                 return {'message': 'Recipe has been created with ingredients'}, 201
 
     @jwt_protected
-
     def put(self, _id=None):
         data = request.json
+        try:
+            normalize_data(data)
+        except ValidationError:
+            return {'message': 'Incorrect data entered: name and recipe field cannot be empty'}, 400
         if _id is None:
             return {'message': 'Must specify recipe id in the url to make changes'}, 404
         recipe = db.session.query(Recipe).filter_by(id=_id).first()
@@ -101,15 +125,13 @@ class RecipeApi(Resource):
         else:
             recipe_name = data.get('name', '')
             recipe_text = data.get('recipe', '')
-            if len(recipe_name) < 1 or len(recipe_text) < 1:
-                return {'message': 'Incorrect data entered: Mandatory fields cannot be empty'}, 400
             recipe.name = recipe_name
             recipe.recipe = recipe_text
             recipe.ingredients = []
             for item in ingredients:
-                ingredient = db.session.query(Ingredient).filter_by(name=item.strip().lower()).first()
+                ingredient = db.session.query(Ingredient).filter_by(name=item).first()
                 if not ingredient:
-                    ingredient = Ingredient(item.strip().lower())
+                    ingredient = Ingredient(item)
                 recipe.ingredients.append(ingredient)
             try:
                 db.session.commit()
@@ -123,9 +145,23 @@ class RecipeApi(Resource):
                 return {'message': 'Recipe has been updated with ingredients'}, 201
 
     @jwt_protected
-
     def patch(self, _id=None):
         data = request.json
+        try:  # Validating and normalizing data - made separate for patch method
+            if data.get('name') and len(data.get('name')) < 1:
+                raise ValidationError
+            if data.get('recipe') and len(data.get('recipe')) < 1:
+                raise ValidationError
+            for key, val in data.items():
+                if key == 'ingredients':
+                    new_list = [item.strip().lower() for item in val if len(item) > 0]
+                    data[key] = new_list
+                elif key == 'recipe':
+                    continue
+                else:
+                    data[key] = val.strip().lower() if len(val) > 0 else None
+        except ValidationError:
+            return {'message': 'Incorrect data entered: name and recipe fields cannot be empty'}, 400
         if _id is None:
             return {'message': 'Must specify recipe id in the url to make changes'}, 404
         recipe = db.session.query(Recipe).filter_by(id=_id).first()
@@ -173,7 +209,6 @@ class RecipeApi(Resource):
                 return {'message': 'Recipe has been updated with ingredients'}, 201
 
     @jwt_protected
-
     def delete(self, _id=None):
         if _id is None:
             return {'message': 'Must specify recipe id in the url to delete'}, 404

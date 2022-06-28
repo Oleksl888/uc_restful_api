@@ -4,8 +4,16 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from werkzeug.security import generate_password_hash
 from src import db
 
-#add nullable contrsaints
+
 class Recipe(db.Model):
+    """
+    Notes for future self:
+    Create a table and fill out the fields that will be table's columns.
+    Set data types, constraints, relationship (many to many in the case below).
+    Be sure to set lazy param to true to allow more efficient usage of db with less requests.
+    Backref must be set only in one model as opposed to "back_populates".
+    Init can be added optionally.
+    """
     __tablename__ = 'recipes'
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
@@ -36,13 +44,6 @@ class Ingredient(db.Model):
 
     def __repr__(self):
         return f'Ingredient <{self.name}>'
-
-
-recipe_ingredients = db.Table(
-    'recipe_ingredients',
-    Column('recipe_id', Integer, ForeignKey('recipes.id'), primary_key=True),
-    Column('ingredient_id', Integer, ForeignKey('ingredients.id'), primary_key=True)
-)
 
 
 class Feedback(db.Model):
@@ -108,6 +109,13 @@ class User(db.Model):
     def __repr__(self):
         return f'User <{self.name}>, Email <{self.email}>'
 
+
+# The tables below are joint tables to express many-to-many relationship between models
+recipe_ingredients = db.Table(
+    'recipe_ingredients',
+    Column('recipe_id', Integer, ForeignKey('recipes.id'), primary_key=True),
+    Column('ingredient_id', Integer, ForeignKey('ingredients.id'), primary_key=True)
+)
 
 recipe_feedback = db.Table(
     'recipe_feedback',

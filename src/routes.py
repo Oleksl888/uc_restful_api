@@ -8,6 +8,7 @@ from src.resources.index import Index
 from src.resources.users import UsersApi
 
 
+# Adding endpoints to the api
 api.add_resource(Index, '/', strict_slashes=False)
 api.add_resource(RecipeApi, '/recipes', '/recipes/<_id>', strict_slashes=False)
 api.add_resource(IngredientApi, '/ingredients', '/ingredients/<_id>', strict_slashes=False)

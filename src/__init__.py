@@ -8,15 +8,16 @@ from flask_mail import Mail
 from flask_swagger_ui import get_swaggerui_blueprint
 
 
-app = Flask(__name__)
-app.config.from_object(Config)
-api = Api(app)
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-ma = Marshmallow(app)
-mail = Mail(app)
+app = Flask(__name__)  # Create flask app
+app.config.from_object(Config)  # Import config
+api = Api(app)  # Create api object
+db = SQLAlchemy(app)  # Create database
+migrate = Migrate(app, db)  # Set up for database migrations (it's like VCS for database)
+ma = Marshmallow(app)  # Set up for database schemas
+mail = Mail(app)  # Set up for sending emails from application
 
 
+# Set up for Swagger UI
 SWAGGER_URL = '/swagger'
 API_URL = '/static/openapi.yaml'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
@@ -31,4 +32,5 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 
 
+# Importing routes and models to avoid circular import exception
 from src import routes, models

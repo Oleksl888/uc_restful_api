@@ -3,11 +3,12 @@ import json
 import pytest
 from src import app
 
-
+# Creating a test client for application
 app.testing = True
 client = app.test_client()
 
 
+# Fixture that will apply endpoints in params to the test cases in get requests
 @pytest.fixture(scope='function', params=[
     '/recipes',
     '/ingredients',
@@ -38,6 +39,7 @@ def setup_post(request):
     return endpoints
 
 
+# Fixture that will apply endpoints in params to the test cases in post requests
 def test_endpoints_with_get(setup_get):
     resp = client.post(setup_get)
     # print(resp.status_code)
@@ -58,14 +60,30 @@ def test_endpoints_with_post(setup_post):
 
 
 def test_register_with_post():
-    resp = client.post('/register', data=json.dumps(dict(name='alexa', email='alex@mail.com', password='12345678')), content_type='application/json')
+    resp = client.post('/register',
+                       data=json.dumps(
+                           dict(
+                               name='alexa',
+                               email='alex@mail.com',
+                               password='12345678')
+                       ),
+                       content_type='application/json'
+                       )
     print(resp.status_code)
     print(resp.content_type)
     print(resp.json)
     assert resp.status_code == 201
 
+
 def test_login_with_post():
-    resp = client.post('/login', data=json.dumps(dict(name='alexa', password='12345678')), content_type='application/json')
+    resp = client.post('/login',
+                       data=json.dumps(
+                           dict(
+                               name='alexa',
+                               password='12345678')
+                       ),
+                       content_type='application/json'
+                       )
     print(resp.status_code)
     print(resp.content_type)
     print(resp.json)
