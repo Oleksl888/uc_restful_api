@@ -126,5 +126,7 @@ The following endpoints are supported with following methods:
    - PATCH: Partially updates a selected user from admin panel. Admin authorization required. Request must be a valid JSON. Name must be only alphabetic and password must contain at least 8 symbols. Optionally admin can alter other fields in user account such as st admin privileges. URL must contain {uuid}.
    - DELETE: Deletes a selected user. Admin authorization required. Request must be a valid JSON. URL must contain {uuid}.
 
+8. **/search**
+   - GET: Returns recipes list. No user authorization/authentication required. Look for a recipe by name and it will return a list of matches. If you look up a recipe by ingredients, make sure you add commas between words otherwise it won't produce the correct result. Params to include are 'recipe' and 'ingredient'.
 
 ## Enjoy and have fun

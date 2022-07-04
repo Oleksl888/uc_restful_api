@@ -22,7 +22,8 @@ tags:
     description : "API for registering new user. No authentication required"
   - name: Login User
     description : "API for logging in and receiving a jwt token to use with protected endpoints."
-    
+  - name: Search Request
+    description : "API to look up a recipe by name or by ingredients that it has"
 security:
 - BearerAuth: []
 paths:
@@ -504,7 +505,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/users'
+              $ref: '#/components/schemas/register_user'
       responses:
         201:
           description: User created
@@ -642,7 +643,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/users'
+              $ref: '#/components/schemas/register_user'
       responses:
         201:
           description: User created
@@ -688,6 +689,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/tracker'
+
+  /search:
+    get:
+      tags:
+        - Search Request
+      summary: Looks for a recipe by name or by ingredient that it has
+      description: Look for a recipe by name and it will return a list of matches. If you look up a recipe by ingredients, make sure you add commas between words otherwise it won't produce the correct result.
+      operationId: getSearch
+      parameters:
+        - in: query
+          name: recipe
+          required: false
+          description: Enter query below to look for all recipes that contain this name.
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: ingredient
+          required: false
+          description: Enter query below to look for all recipes that contain these ingredients. Make sure to separate multiple ingredients with commas.
+          schema:
+            type: string
+            format: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipes'
 
 components:
   schemas:
@@ -768,6 +799,17 @@ components:
       type: object
       properties:
         name:
+          type: string
+        password:
+          type: string
+          format: password
+
+    register_user:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
           type: string
         password:
           type: string
